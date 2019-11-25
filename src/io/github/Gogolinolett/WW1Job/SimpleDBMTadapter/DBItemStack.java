@@ -12,7 +12,7 @@ public class DBItemStack implements DBvalue {
 	@Override
 	public void Parse(String text) {
 		// TODO Auto-generated method stub
-		itemstackValue = new ItemStack;
+		
 		
 		
 		

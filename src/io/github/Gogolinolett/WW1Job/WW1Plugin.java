@@ -1,9 +1,14 @@
 package io.github.Gogolinolett.WW1Job;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,6 +27,8 @@ public class WW1Plugin extends JavaPlugin {
 	public static WW1Plugin plugin;
 	public static DataBaseHandler dbh;
 	public static DataBaseQuery dataBaseQuery;
+
+
 
 	public void onEnable() {
 		plugin = this;
@@ -44,7 +51,7 @@ public class WW1Plugin extends JavaPlugin {
 		}
 
 		getCommand("WW1").setExecutor(new WW1CommandExecutor());
-		
+
 	}
 
 	public boolean setupDB() {
@@ -56,6 +63,10 @@ public class WW1Plugin extends JavaPlugin {
 
 		return dataBaseProvider != null;
 	}
+
+
+
+
 
 	public static void setMapSpawn(String name, Player player, int team) {
 
@@ -98,7 +109,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static Location getLocation(String name, Player player, int team) {
 		Location location;
-		
+
 		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Locations", new String[] { "location1", "location2" },
 				new SearchedValue[] { new SearchedValue("name", new DBString(name)) });
 
@@ -106,19 +117,14 @@ public class WW1Plugin extends JavaPlugin {
 			player.sendMessage("This dungeon doesnt exist");
 			return null;
 		} else {
-			location = ((DBLocation)queryResult.rows.get(0).get(team - 1)).getValue();
+			location = ((DBLocation) queryResult.rows.get(0).get(team - 1)).getValue();
 		}
 
 		return location;
 	}
-	
-	
-	public static void setKit (String name, Player player){
-		
-		
-		player.getInventory().getContents();
-		player.getInventory().getArmorContents();
-		
-	}
+
+
+
+
 
 }

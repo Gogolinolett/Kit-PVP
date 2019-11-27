@@ -86,7 +86,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 					
 					player.sendMessage("tping");
 					Location location = WW1Plugin.getLocation(args[1], player, Integer.parseInt(args[2]));
-					getInv(player);
+					getInv(player, args[1]);
 					
 					player.teleport(location);
 				}
@@ -111,8 +111,11 @@ public class WW1CommandExecutor implements CommandExecutor {
 	}
 	
 	
-	public void getInv(Player p) {
+	public void getInv(Player p, String name) {
 
+		
+		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
+		
 		if (file.exists()) {
 
 			this.yml = YamlConfiguration.loadConfiguration(file);
@@ -128,6 +131,8 @@ public class WW1CommandExecutor implements CommandExecutor {
 	public void saveInv(Player p, String name) {
 		checkFolder();
 
+		
+		
 		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
 
 		if (file.exists()) {

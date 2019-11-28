@@ -8,10 +8,13 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import io.github.Gogolinolett.DungeonPlugin.DungeonPlugin.JoinListener;
 import io.github.Gogolinolett.WW1Job.SimpleDBMTadapter.DBLocation;
 import io.github.SebastianDanielFrenz.SimpleDBMT.CrashedDBstock;
 import io.github.SebastianDanielFrenz.SimpleDBMT.DataBaseHandler;
@@ -27,8 +30,6 @@ public class WW1Plugin extends JavaPlugin {
 	public static WW1Plugin plugin;
 	public static DataBaseHandler dbh;
 	public static DataBaseQuery dataBaseQuery;
-
-
 
 	public void onEnable() {
 		plugin = this;
@@ -48,9 +49,91 @@ public class WW1Plugin extends JavaPlugin {
 			dbh.getDataBase("WW1Job").getTable("Locations").addColumn("location1");
 			dbh.getDataBase("WW1Job").getTable("Locations").addColumn("location2");
 
+			dbh.getDataBase("WW1Job").createTable("Players");
+			dbh.getDataBase("WW1Job").getTable("Players").addColumn("UUID");
+			dbh.getDataBase("WW1Job").getTable("Players").addColumn("Map");
+			dbh.getDataBase("WW1Job").getTable("Players").addColumn("Team");
+
+			dbh.getDataBase("WW1Job").createTable("Standard");
+			dbh.getDataBase("WW1Job").getTable("Standard").addColumn("Location");
+
 		}
 
 		getCommand("WW1").setExecutor(new WW1CommandExecutor());
+
+		getServer().getPluginManager().registerEvents(new JoinListener(), this);
+	}
+	
+	
+
+	public class JoinListener implements Listener {
+
+		public void onPDeath(PlayerDeathEvent event) {
+
+			if (getPlayerMap(event.getEntity().getPlayer()) != null) {
+				event.getEntity().getPlayer().teleport(
+						getLocation(getPlayerMap(event.getEntity().getPlayer()), event.getEntity().getPlayer()));
+
+			}
+
+		}
+
+	}
+	
+	
+
+	public static String getPlayerTeam(Player player) {
+		
+		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Team" },
+				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+		
+		return queryResult.rows.size() == 0 ? null : ((DBString) queryResult.rows.get(0).get(0)).getValue();
+		
+		
+	}
+
+	public static void setStandardSpawn(Player player) {
+
+		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Standard", new String[] { "Location" },
+				new SearchedValue[] { new SearchedValue("Location", new DBString("")) });
+
+		if (queryResult.isEmpty()) {
+			dataBaseQuery.Insert("WW1Job", "Standard",
+					new SearchedValue[] { new SearchedValue("Location", new DBLocation(player.getLocation())) });
+
+		} else {
+			dataBaseQuery.Update("WW1Job", "Standard", new SearchedValue[] {},
+					new SearchedValue[] { new SearchedValue("Location", new DBLocation(player.getLocation())) });
+		}
+
+	}
+
+	public static String getPlayerMap(Player player) {
+		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Map" },
+				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+
+		return queryResult.rows.size() == 0 ? null : ((DBString) queryResult.rows.get(0).get(0)).getValue();
+
+	}
+
+	public static void setPlayerMap(Player player, String map) {
+
+		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Map" },
+				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+
+		if (queryResult.isEmpty()) {
+
+			dataBaseQuery.Insert("WW1Job", "Players",
+					new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())),
+							new SearchedValue("Map", new DBString(map)) });
+		}
+
+	}
+
+	public static void deletePlayerMap(Player player) {
+
+		dataBaseQuery.Delete("WW1Job", "Players",
+				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
 
 	}
 
@@ -63,10 +146,6 @@ public class WW1Plugin extends JavaPlugin {
 
 		return dataBaseProvider != null;
 	}
-
-
-
-
 
 	public static void setMapSpawn(String name, Player player, int team) {
 
@@ -107,7 +186,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public static Location getLocation(String name, Player player, int team) {
+	public static Location getLocation(String name, Player player) {
 		Location location;
 
 		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Locations", new String[] { "location1", "location2" },
@@ -117,14 +196,10 @@ public class WW1Plugin extends JavaPlugin {
 			player.sendMessage("This dungeon doesnt exist");
 			return null;
 		} else {
-			location = ((DBLocation) queryResult.rows.get(0).get(team - 1)).getValue();
+			location = ((DBLocation) queryResult.rows.get(0).get(Integer.parseInt(getPlayerTeam(player)) - 1)).getValue();
 		}
 
 		return location;
 	}
-
-
-
-
 
 }

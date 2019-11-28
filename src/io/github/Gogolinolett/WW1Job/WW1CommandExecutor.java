@@ -17,7 +17,7 @@ import org.bukkit.inventory.ItemStack;
 public class WW1CommandExecutor implements CommandExecutor {
 
 	public static String prefix = "[WW1Job]";
-	
+
 	List<ItemStack> inv;
 	List<ItemStack> armor;
 	YamlConfiguration yml;
@@ -56,66 +56,101 @@ public class WW1CommandExecutor implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
 		Player player = (Player) sender;
-		if (args[0].equalsIgnoreCase("test")){
+		if (args[0].equalsIgnoreCase("test")) {
 			player.sendMessage("Test");
 		}
 
-			if (hasPermission(sender, new String[] { "WW1.setSpawn", "WW1.*", "WW1.Admin" }) == true) {
+		if (hasPermission(sender, new String[] { "WW1.setSpawn", "WW1.*", "WW1.Admin" }) == true) {
 
-				if (args[0].equalsIgnoreCase("setspawn")) {
-					// /ww1 setspawn <name> <team>
-					player.sendMessage("setting mapspawn");
-					WW1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
+			if (args[0].equalsIgnoreCase("setspawn")) {
+				// /ww1 setspawn <name> <team>
+				player.sendMessage("setting mapspawn");
 
-				}
+				WW1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
 
 			}
 
-			if (hasPermission(sender, new String[] { "WW1.createMap", "WW1.*", "WW1.Admin" }) == true) {
+		}
 
-				if (args[0].equalsIgnoreCase("create")) {
-					player.sendMessage("creating map");
-					WW1Plugin.createMap(args[1], player);
-				}
+		if (hasPermission(sender, new String[] { "WW1.createMap", "WW1.*", "WW1.Admin" }) == true) {
+
+			if (args[0].equalsIgnoreCase("create")) {
+				player.sendMessage("creating map");
+				WW1Plugin.createMap(args[1], player);
 			}
+		}
 
-			if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
-					"WW1.tp." + args[1] }) == true) {
+		if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
+				"WW1.tp." + args[1] }) == true) {
 
-				if (args[0].equalsIgnoreCase("tp")) {
-					
+			if (args[0].equalsIgnoreCase("tp")) {
+				if (WW1Plugin.getPlayerMap(player) != null) {
+
+					player.sendMessage("you are in a Map!");
+
+				} else {
+					savePInv(player);
+					WW1Plugin.setPlayerMap(player, args[1]);
 					player.sendMessage("tping");
-					Location location = WW1Plugin.getLocation(args[1], player, Integer.parseInt(args[2]));
-					getInv(player, args[1]);
-					
+					Location location = WW1Plugin.getLocation(args[1], player);
+
+					setInv(player, args[1]);
+
 					player.teleport(location);
+
 				}
 
 			}
-			
-			
-			if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
-					"WW1.tp." + args[1] }) == true){
-				if (args[0].equalsIgnoreCase("setkit")){
-					
-					saveInv(player, args[1]);
-					
+
+		}
+
+		if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
+				"WW1.tp." + args[1] }) == true) {
+			if (args[0].equalsIgnoreCase("setkit")) {
+
+				saveInv(player, args[1]);
+				player.sendMessage("Kit set");
+
+			}
+
+		}
+
+		if (hasPermission(sender,
+				new String[] { "WW1.leave", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*" }) == true) {
+
+			if (args[0].equalsIgnoreCase("leave")) {
+
+				if (WW1Plugin.getPlayerMap(player) == null) {
+					player.sendMessage("You are not in a Map");
+
+				} else {
+					WW1Plugin.setPlayerMap(player, null);
+					setInv(player, args[1]);
+					player.sendMessage("You left the map");
 				}
+
+			}
+
+		}
+
+		if (hasPermission(sender,
+				new String[] { "WW1.setStandardSpawn", "WW1.*", "WW1.Admin",  }) == true) {
+			
+			if (args[0].equalsIgnoreCase("setStandardSpawn")) {
 				
+				WW1Plugin.setStandardSpawn(player);
 				
 			}
-		
 
+		}
 		return false;
 
 	}
-	
-	
-	public void getInv(Player p, String name) {
 
-		
-		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
-		
+	public void getPInv(Player p, String name) {
+
+		File file = new File(WW1Plugin.plugin.getDataFolder(), p.getUniqueId() + ".yml");
+
 		if (file.exists()) {
 
 			this.yml = YamlConfiguration.loadConfiguration(file);
@@ -127,12 +162,54 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 		}
 	}
-	
+
+	public void setInv(Player p, String name) {
+
+		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
+
+		if (file.exists()) {
+
+			this.yml = YamlConfiguration.loadConfiguration(file);
+
+			ItemStack[] i = toAnArray(this.yml.getList("Inventory"));
+			ItemStack[] ar = toAnArray(this.yml.getList("Armor"));
+
+			p.getInventory().setContents(i);
+
+		}
+	}
+
+	public void savePInv(Player p) {
+		checkFolder();
+
+		File file = new File(WW1Plugin.plugin.getDataFolder(), p.getUniqueId() + ".yml");
+
+		if (file.exists()) {
+			file.delete();
+		}
+
+		try {
+			file.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		this.yml = YamlConfiguration.loadConfiguration(file);
+
+		this.yml.set("Inventory", toList(p.getInventory().getContents()));
+		this.yml.set("Armor", toList(p.getInventory().getArmorContents()));
+
+		try {
+			this.yml.save(file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	public void saveInv(Player p, String name) {
 		checkFolder();
 
-		
-		
 		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
 
 		if (file.exists()) {
@@ -157,8 +234,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 		}
 
 	}
-	
-	
+
 	public void checkFolder() {
 		File f = new File((String) WW1Plugin.plugin.getDataFolder().getName());
 		if (f.exists()) {

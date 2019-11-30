@@ -60,61 +60,69 @@ public class WW1CommandExecutor implements CommandExecutor {
 			player.sendMessage("Test");
 		}
 
-		if (hasPermission(sender, new String[] { "WW1.setSpawn", "WW1.*", "WW1.Admin" }) == true) {
+		if (args.length > 1) {
 
-			if (args[0].equalsIgnoreCase("setspawn")) {
-				// /ww1 setspawn <name> <team>
-				player.sendMessage("setting mapspawn");
+			if (hasPermission(sender, new String[] { "WW1.setSpawn", "WW1.*", "WW1.Admin" }) == true) {
 
-				WW1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
+				if (args[0].equalsIgnoreCase("setspawn")) {
+					// /ww1 setspawn <name> <team>
+					player.sendMessage("setting mapspawn");
+
+					WW1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
+
+				}
 
 			}
 
-		}
+			if (hasPermission(sender, new String[] { "WW1.createMap", "WW1.*", "WW1.Admin" }) == true) {
 
-		if (hasPermission(sender, new String[] { "WW1.createMap", "WW1.*", "WW1.Admin" }) == true) {
-
-			if (args[0].equalsIgnoreCase("create")) {
-				player.sendMessage("creating map");
-				WW1Plugin.createMap(args[1], player);
+				if (args[0].equalsIgnoreCase("create")) {
+					player.sendMessage("creating map");
+					WW1Plugin.createMap(args[1], player);
+				}
 			}
-		}
 
-		if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
-				"WW1.tp." + args[1] }) == true) {
+			if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
+					"WW1.tp." + args[1] }) == true) {
 
-			if (args[0].equalsIgnoreCase("tp")) {
-				if (WW1Plugin.getPlayerMap(player) != null) {
+				if (args[0].equalsIgnoreCase("tp")) {
+					if (WW1Plugin.getPlayerMap(player) != null) {
 
-					player.sendMessage("you are in a Map!");
+						player.sendMessage("you are in a Map!");
 
-				} else {
-					savePInv(player);
-					WW1Plugin.setPlayerMap(player, args[1]);
-					player.sendMessage("tping");
-					Location location = WW1Plugin.getLocation(args[1], player);
+					} else {
+						savePInv(player);
+						WW1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
+						WW1Plugin.setPlayerMap(player, args[1]);
 
-					setInv(player, args[1]);
+						player.sendMessage("tping");
+						
+						Location location = WW1Plugin.getLocation(args[1], player);
 
-					player.teleport(location);
+						setInv(player, args[1]);
+
+						player.teleport(location);
+
+					}
+
+				}
+
+			}
+
+			if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
+					"WW1.tp." + args[1] }) == true) {
+				if (args[0].equalsIgnoreCase("setkit")) {
+
+					saveInv(player, args[1]);
+					player.sendMessage("Kit set");
 
 				}
 
 			}
 
 		}
-
-		if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
-				"WW1.tp." + args[1] }) == true) {
-			if (args[0].equalsIgnoreCase("setkit")) {
-
-				saveInv(player, args[1]);
-				player.sendMessage("Kit set");
-
-			}
-
-		}
-
+		
+		
 		if (hasPermission(sender,
 				new String[] { "WW1.leave", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*" }) == true) {
 
@@ -133,13 +141,12 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 		}
 
-		if (hasPermission(sender,
-				new String[] { "WW1.setStandardSpawn", "WW1.*", "WW1.Admin",  }) == true) {
-			
+		if (hasPermission(sender, new String[] { "WW1.setStandardSpawn", "WW1.*", "WW1.Admin", }) == true) {
+
 			if (args[0].equalsIgnoreCase("setStandardSpawn")) {
-				
+				player.sendMessage("setStandardSpawn");
 				WW1Plugin.setStandardSpawn(player);
-				
+
 			}
 
 		}

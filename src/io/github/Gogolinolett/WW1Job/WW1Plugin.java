@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -24,6 +25,7 @@ import io.github.SebastianDanielFrenz.SimpleDBMT.query.QueryResult;
 import io.github.SebastianDanielFrenz.SimpleDBMT.query.SearchedValue;
 import io.github.SebastianDanielFrenz.SimpleDBMT.registry.TypeRegistry;
 import io.github.SebastianDanielFrenz.SimpleDBMT.varTypes.DBString;
+import io.github.SebastianDanielFrenz.SimpleDBMT.varTypes.DBint;
 
 public class WW1Plugin extends JavaPlugin {
 
@@ -63,16 +65,13 @@ public class WW1Plugin extends JavaPlugin {
 
 		getServer().getPluginManager().registerEvents(new JoinListener(), this);
 	}
-	
-	
 
 	public class JoinListener implements Listener {
 
-		public void onPDeath(PlayerDeathEvent event) {
+		public void onPSpawn(PlayerRespawnEvent event) {
 
-			if (getPlayerMap(event.getEntity().getPlayer()) != null) {
-				event.getEntity().getPlayer().teleport(
-						getLocation(getPlayerMap(event.getEntity().getPlayer()), event.getEntity().getPlayer()));
+			if (getPlayerMap(event.getPlayer()) != null) {
+				event.getPlayer().teleport(getLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
 
 			}
 
@@ -80,16 +79,28 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 	
-	
-
-	public static String getPlayerTeam(Player player) {
+	public static void setPlayerTeam(Player player, int team){
 		
+	dataBaseQuery.Update("WW1Job", "Players", new SearchedValue[] {new SearchedValue("UUID", new DBString(player.getUniqueId().toString()))  }  ,
+			new SearchedValue[] {new SearchedValue("Team", new DBint(team)) });	
+		
+	}
+
+	public static Location getStandardSpawn() {
+
+		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Standard", new String[] { "Location" },
+				new SearchedValue[] { new SearchedValue("Location", new DBString("")) });
+
+		return queryResult.rows.size() == 0 ? null : ((DBLocation) queryResult.rows.get(0).get(0)).getValue();
+	}
+
+	public static int getPlayerTeam(Player player) {
+
 		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Team" },
 				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
-		
-		return queryResult.rows.size() == 0 ? null : ((DBString) queryResult.rows.get(0).get(0)).getValue();
-		
-		
+
+		return queryResult.rows.size() == 0 ? null : ((DBint) queryResult.rows.get(0).get(0)).getValue();
+
 	}
 
 	public static void setStandardSpawn(Player player) {
@@ -126,6 +137,12 @@ public class WW1Plugin extends JavaPlugin {
 			dataBaseQuery.Insert("WW1Job", "Players",
 					new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())),
 							new SearchedValue("Map", new DBString(map)) });
+		} else {
+
+			dataBaseQuery.Update("WW1Job", "Players",
+					new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) },
+					new SearchedValue[] {new SearchedValue("Map", new DBString(map)) });
+
 		}
 
 	}
@@ -196,7 +213,8 @@ public class WW1Plugin extends JavaPlugin {
 			player.sendMessage("This dungeon doesnt exist");
 			return null;
 		} else {
-			location = ((DBLocation) queryResult.rows.get(0).get(Integer.parseInt(getPlayerTeam(player)) - 1)).getValue();
+			location = ((DBLocation) queryResult.rows.get(0).get((getPlayerTeam(player)) - 1))
+					.getValue();
 		}
 
 		return location;

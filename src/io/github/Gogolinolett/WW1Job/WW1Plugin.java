@@ -1,21 +1,13 @@
 package io.github.Gogolinolett.WW1Job;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.bukkit.Location;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import io.github.Gogolinolett.DungeonPlugin.DungeonPlugin.JoinListener;
 import io.github.Gogolinolett.WW1Job.SimpleDBMTadapter.DBLocation;
 import io.github.SebastianDanielFrenz.SimpleDBMT.CrashedDBstock;
 import io.github.SebastianDanielFrenz.SimpleDBMT.DataBaseHandler;

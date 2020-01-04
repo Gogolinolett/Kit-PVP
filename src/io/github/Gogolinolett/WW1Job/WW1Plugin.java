@@ -28,24 +28,7 @@ public class WW1Plugin extends JavaPlugin {
 		setupDB();
 
 		
-		try {
-			dbh.addDataBase("WW1Job.db", reg);
-		} catch (IOException e) {
-			dbh.createDataBase("WW1Job", "WW1Job.db", reg);
-			dbh.getDataBase("WW1Job").createTable("Locations");
-			dbh.getDataBase("WW1Job").getTable("Locations").addColumn("name");
-			dbh.getDataBase("WW1Job").getTable("Locations").addColumn("location1");
-			dbh.getDataBase("WW1Job").getTable("Locations").addColumn("location2");
 
-			dbh.getDataBase("WW1Job").createTable("Players");
-			dbh.getDataBase("WW1Job").getTable("Players").addColumn("UUID");
-			dbh.getDataBase("WW1Job").getTable("Players").addColumn("Map");
-			dbh.getDataBase("WW1Job").getTable("Players").addColumn("Team");
-
-			dbh.getDataBase("WW1Job").createTable("Standard");
-			dbh.getDataBase("WW1Job").getTable("Standard").addColumn("Location");
-
-		}
 
 		getCommand("WW1").setExecutor(new WW1CommandExecutor());
 
@@ -67,14 +50,18 @@ public class WW1Plugin extends JavaPlugin {
 	
 	public static void setPlayerTeam(Player player, int team){
 		
+		if (team > 0 && team < 3){
 		runSQL("UPDATE Players SET Team \""+ team +"\" WHERE UUID =\"" +player.getUniqueId().toString() +"\" ");
-	dataBaseQuery.Update("WW1Job", "Players", new SearchedValue[] {new SearchedValue("UUID", new DBString(player.getUniqueId().toString()))  }  ,
-			new SearchedValue[] {new SearchedValue("Team", new DBint(team)) });	
+
+		}
 		
 	}
 
 	public static Location getStandardSpawn() {
-		runSQL("");
+		ResultSet rs = runSQL("SELECT (world,x,y,z) FROM Standard");
+		
+		Location = new Location(rs.findColumn("world"),rs.findColumn("x"),rs.findColumn("y"),rs.findColumn("z"));
+		
 		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Standard", new String[] { "Location" },
 				new SearchedValue[] { new SearchedValue("Location", new DBString("")) });
 
@@ -146,7 +133,7 @@ public class WW1Plugin extends JavaPlugin {
 		sqlc = connect(getDataFolder().getAbsolutePath() + "/database.db");
 
 		if (isNew) {
-			runSQL("CREATE TABLE Locations (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY); CREATE TABLE Players(Map STRING, Team REAL, UUID STRING PRIMARY KEY); CREATE TABLE Standard(world STRING, x REAL, y REAL, z REAL)");
+			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY); CREATE TABLE Players(Map STRING, Team REAL, UUID STRING PRIMARY KEY); CREATE TABLE Standard(world STRING, x REAL, y REAL, z REAL)");
 		}
 	}
 
@@ -154,21 +141,21 @@ public class WW1Plugin extends JavaPlugin {
 		
 		if (3 > team && team > 0) {
 			
-			runSQL("UPDATE Locations SET world"+ team +" = \"" + player.getWorld().getName() + "\",x"+ team +"=" + player.getLocation().getX()
+			runSQL("UPDATE TeamSpawns SET world"+ team +" = \"" + player.getWorld().getName() + "\",x"+ team +"=" + player.getLocation().getX()
 					+ ",y"+ team +"=" + player.getLocation().getY() + ",z"+ team +"=" + player.getLocation().getZ());
 			
 			
 			
-			/* dataBaseQuery.Update("WW1Job", "Locations",
+			/* dataBaseQuery.Update("WW1Job", TeamSpawns,
 					new SearchedValue[] { new SearchedValue("name", new DBString(name)) },
 					new SearchedValue[] { new SearchedValue("location" + team, new DBLocation(player.getLocation())) });
 
-			QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Locations", new String[] { "name" },
+			QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns, new String[] { "name" },
 					new SearchedValue[] { new SearchedValue("name", new DBString(name)) });
 					*/
 			
 			try{
-				if (!runSQL("SELECT world"+ team +"FROM Locations WHERE name = \"" + name + "\"")){
+				if (!runSQL("SELECT world"+ team +"FROM TeamSpawns WHERE name = \"" + name + "\"").next()){
 					player.sendMessage("This Map does not exist!");
 				}
 			}catch(Exception e){
@@ -191,7 +178,7 @@ public class WW1Plugin extends JavaPlugin {
 		if (queryResult.isEmpty()) {
 			
 			
-			runSQL("INSERT INTO Locations (name) VALUES(\""+ name + "\" )");
+			runSQL("INSERT INTO TeamSpawns (name) VALUES(\""+ name + "\" )");
 			
 		} else {
 			player.sendMessage("This Map exists! Please Choose a different name!");
@@ -203,7 +190,7 @@ public class WW1Plugin extends JavaPlugin {
 	public static Location getLocation(String name, Player player) {
 		Location location;
 
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Locations", new String[] { "location1", "location2" },
+		QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns, new String[] { "location1", "location2" },
 				new SearchedValue[] { new SearchedValue("name", new DBString(name)) });
 
 		if (queryResult.isEmpty()) {

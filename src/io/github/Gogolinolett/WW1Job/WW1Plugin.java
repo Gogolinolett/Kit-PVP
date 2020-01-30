@@ -101,7 +101,7 @@ public class WW1Plugin extends JavaPlugin {
 				// player.getUniqueId().toString() +"," + team + ")");
 				// } else {
 
-				runSQL("UPDATE Players SET Team \"" + team + "\" WHERE UUID =\"" + player.getUniqueId().toString()
+				runSQL("UPDATE Players SET Team = \"" + team + "\" WHERE UUID =\"" + player.getUniqueId().toString()
 						+ "\" ");
 				// }
 			}
@@ -130,7 +130,7 @@ public class WW1Plugin extends JavaPlugin {
 	public static int getPlayerTeam(Player player) {
 		try {
 			ResultSet rs = runSQLQuery(
-					"SELECT Team FROM Player WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
+					"SELECT Team FROM Players WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
 
 			if (!rs.next()) {
 				player.sendMessage("No Team Selected");
@@ -174,7 +174,9 @@ public class WW1Plugin extends JavaPlugin {
 		try {
 			ResultSet rs = runSQLQuery(
 					"SELECT Map FROM Players WHERE UUID = \" " + player.getUniqueId().toString() + "\"");
-
+			if (!rs.next()) {
+				return null;
+			}
 			if (rs.getString("Map") == null) {
 				return null;
 
@@ -268,8 +270,7 @@ public class WW1Plugin extends JavaPlugin {
 
 			if (!rs.next()) {
 
-				runSQL("INSERT INTO TeamSpawns (name, world1, world2, x1, x2, y1, y2, z1, z2) VALUES (\"" + name
-						+ "\" )");a
+				runSQL("INSERT INTO TeamSpawns (name) VALUES (\"" + name + "\" )");
 
 			} else {
 				player.sendMessage("This Map exists! Please Choose a different name!");
@@ -285,8 +286,8 @@ public class WW1Plugin extends JavaPlugin {
 	public static Location getMapLocation(String name, Player player) {
 
 		int team = getPlayerTeam(player);
-		ResultSet rs = runSQLQuery("SELECT (x" + team + ", y" + team + ", z" + team + ",, world" + team
-				+ ") WHERE name = \"" + name + "\"");
+		ResultSet rs = runSQLQuery("SELECT x" + team + ", y" + team + ", z" + team + ", world" + team
+				+ " FROM TeamSpawns WHERE name = \"" + name + "\"");
 
 		try {
 			return new Location(plugin.getServer().getWorld(rs.getString("world" + team)), rs.getDouble("x" + team),
@@ -310,6 +311,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static ResultSet runSQLQuery(String sql) {
 		try {
+			System.out.println(sql);
 			return sqlc.createStatement().executeQuery(sql);
 		} catch (SQLException e) {
 
@@ -321,6 +323,7 @@ public class WW1Plugin extends JavaPlugin {
 	public static void runSQL(String sql) {
 
 		try {
+			System.out.println(sql);
 			sqlc.createStatement().execute(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

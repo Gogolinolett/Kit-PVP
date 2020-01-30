@@ -1,5 +1,6 @@
 package io.github.Gogolinolett.WW1Job;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -25,7 +26,19 @@ public class WW1Plugin extends JavaPlugin {
 	public void onEnable() {
 		plugin = this;
 
-		setupDB();
+		try {
+			Files.createDirectories(Paths.get("plugins/WW1Plugin"));
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+		try {
+			setupDB();
+		} catch (SQLException e) {
+			getLogger().info("Cannot continue!");
+			e.printStackTrace();
+			getServer().getPluginManager().disablePlugin(this);
+		}
 
 		getCommand("WW1").setExecutor(new WW1CommandExecutor());
 
@@ -116,7 +129,8 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static int getPlayerTeam(Player player) {
 		try {
-			ResultSet rs = runSQLQuery("SELECT Team FROM Player WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
+			ResultSet rs = runSQLQuery(
+					"SELECT Team FROM Player WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
 
 			if (!rs.next()) {
 				player.sendMessage("No Team Selected");
@@ -158,7 +172,8 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static String getPlayerMap(Player player) {
 		try {
-			ResultSet rs = runSQLQuery("SELECT Map FROM Players WHERE UUID = \" " + player.getUniqueId().toString() + "\"");
+			ResultSet rs = runSQLQuery(
+					"SELECT Map FROM Players WHERE UUID = \" " + player.getUniqueId().toString() + "\"");
 
 			if (rs.getString("Map") == null) {
 				return null;
@@ -197,15 +212,16 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static void deletePlayerMap(Player player) {
 
-		runSQL("UPDATE Players SET (Map) WHERE UUID = \""+ player.getUniqueId().toString() +" VALUES(null)");
+		runSQL("UPDATE Players SET (Map) WHERE UUID = \"" + player.getUniqueId().toString() + " VALUES (null)");
 
 	}
 
-	public void setupDB() {
-		boolean isNew = Files.exists(Paths.get(getDataFolder().getAbsolutePath() + "/database.db"));
-		sqlc = connect(getDataFolder().getAbsolutePath() + "/database.db");
+	public void setupDB() throws SQLException {
+		boolean isNew = Files.exists(Paths.get(getDataFolder().getAbsolutePath() + "\\database.db"));
+		sqlc = connect(getDataFolder().getAbsolutePath() + "\\database.db");
 
 		if (isNew) {
+			getLogger().info("Creating DB!");
 			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY); CREATE TABLE Players(Map STRING, Team REAL, UUID STRING PRIMARY KEY); CREATE TABLE Standard(world STRING, x REAL, y REAL, z REAL)");
 		}
 	}
@@ -250,7 +266,8 @@ public class WW1Plugin extends JavaPlugin {
 
 			if (!rs.next()) {
 
-				runSQL("INSERT INTO TeamSpawns (name, world1, world2, x1, x2, y1, y2, z1, z2) VALUES (\"" + name + "\" )");
+				runSQL("INSERT INTO TeamSpawns (name, world1, world2, x1, x2, y1, y2, z1, z2) VALUES (\"" + name
+						+ "\" )");
 
 			} else {
 				player.sendMessage("This Map exists! Please Choose a different name!");
@@ -264,29 +281,28 @@ public class WW1Plugin extends JavaPlugin {
 	}
 
 	public static Location getMapLocation(String name, Player player) {
-		
+
 		int team = getPlayerTeam(player);
-		ResultSet rs = runSQLQuery("SELECT (x"+team+", y"+team+", z"+team+",, world"+team+") WHERE name = \""+ name +"\"");
-		
+		ResultSet rs = runSQLQuery("SELECT (x" + team + ", y" + team + ", z" + team + ",, world" + team
+				+ ") WHERE name = \"" + name + "\"");
+
 		try {
-			return new Location(plugin.getServer().getWorld(rs.getString("world"+ team)), rs.getDouble("x" + team), rs.getDouble("y" + team), rs.getDouble("z" + team) );
+			return new Location(plugin.getServer().getWorld(rs.getString("world" + team)), rs.getDouble("x" + team),
+					rs.getDouble("y" + team), rs.getDouble("z" + team));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
-		
+
 	}
 
-	public static Connection connect(String path) {
+	public static Connection connect(String path) throws SQLException {
 		// SQLite connection string
 		String url = "jdbc:sqlite:" + path;
 		Connection conn = null;
-		try {
-			conn = DriverManager.getConnection(url);
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-		}
+
+		conn = DriverManager.getConnection(url);
 		return conn;
 	}
 
@@ -294,15 +310,14 @@ public class WW1Plugin extends JavaPlugin {
 		try {
 			return sqlc.createStatement().executeQuery(sql);
 		} catch (SQLException e) {
-			
+
 			throw new RuntimeException(e);
-			
+
 		}
 	}
-	
-	public static void runSQL(String sql){
-		
-		
+
+	public static void runSQL(String sql) {
+
 		try {
 			sqlc.createStatement().execute(sql);
 		} catch (SQLException e) {

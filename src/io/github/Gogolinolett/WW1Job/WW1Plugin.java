@@ -9,26 +9,23 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-
 
 public class WW1Plugin extends JavaPlugin {
 
 	public static WW1Plugin plugin;
 	public static Connection sqlc;
 
-
 	public void onEnable() {
 		plugin = this;
 
 		setupDB();
-
-		
-
 
 		getCommand("WW1").setExecutor(new WW1CommandExecutor());
 
@@ -37,85 +34,162 @@ public class WW1Plugin extends JavaPlugin {
 
 	public class JoinListener implements Listener {
 
+		public void onPJoin(PlayerJoinEvent event) {
+			// hier wird bei jedem spieler join die in datenbank gegebenenfals
+			// eingefügt
+			try {
+				ResultSet rs = runSQLQuery("SELECT Team, Map FROM Players WHERE UUID =\""
+						+ event.getPlayer().getUniqueId().toString() + "\" ");
+
+				if (!rs.next()) {
+
+					runSQL("INSERT INTO Players UUID VALUES (" + event.getPlayer().getUniqueId().toString() + ")");
+
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			try {
+				ResultSet rs = runSQLQuery(
+						"SELECT UUID FROM Players WHERE UUID = \"" + event.getPlayer().getUniqueId().toString() + "\"");
+
+				if (!rs.next()) {
+					runSQL("INSERT INTO Players (UUID, Team, Map) VAlUES(" + event.getPlayer().getUniqueId().toString()
+							+ ")");
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+
 		public void onPSpawn(PlayerRespawnEvent event) {
 
 			if (getPlayerMap(event.getPlayer()) != null) {
-				event.getPlayer().teleport(getLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
+				event.getPlayer().teleport(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
 
 			}
 
 		}
 
 	}
-	
-	public static void setPlayerTeam(Player player, int team){
-		
-		if (team > 0 && team < 3){
-		runSQL("UPDATE Players SET Team \""+ team +"\" WHERE UUID =\"" +player.getUniqueId().toString() +"\" ");
 
+	public static void setPlayerTeam(Player player, int team) {
+		try {
+			if (team > 0 && team < 3) {
+
+				// ResultSet rs = runSQL("SELECT Team FROM Players WHERE UUID
+				// =\"" + player.getUniqueId().toString() + "\" ");
+
+				// if (!rs.next()) {
+				// runSQL("INSERT INTO Players (UUID, Team) VALUES ("+
+				// player.getUniqueId().toString() +"," + team + ")");
+				// } else {
+
+				runSQL("UPDATE Players SET Team \"" + team + "\" WHERE UUID =\"" + player.getUniqueId().toString()
+						+ "\" ");
+				// }
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		
 	}
 
 	public static Location getStandardSpawn() {
-		ResultSet rs = runSQL("SELECT (world,x,y,z) FROM Standard");
-		
-		Location = new Location(rs.findColumn("world"),rs.findColumn("x"),rs.findColumn("y"),rs.findColumn("z"));
-		
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Standard", new String[] { "Location" },
-				new SearchedValue[] { new SearchedValue("Location", new DBString("")) });
+		try {
+			ResultSet rs = runSQLQuery("SELECT world,x,y,z FROM Standard");
+			if (!rs.next()) {
+				throw new RuntimeException("Was befindet sich hier? NICHTS!!!");
 
-		return queryResult.rows.size() == 0 ? null : ((DBLocation) queryResult.rows.get(0).get(0)).getValue();
+			}
+
+			return new Location(plugin.getServer().getWorld(rs.getString("world")), rs.getInt("x"), rs.getInt("y"),
+					rs.getInt("z"));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+
 	}
 
 	public static int getPlayerTeam(Player player) {
+		try {
+			ResultSet rs = runSQLQuery("SELECT Team FROM Player WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
 
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Team" },
-				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+			if (!rs.next()) {
+				player.sendMessage("No Team Selected");
 
-		return queryResult.rows.size() == 0 ? null : ((DBint) queryResult.rows.get(0).get(0)).getValue();
+			} else {
+				return rs.getInt("Team");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		player.sendMessage("An Error occured! You were assigned Team 1");
+		return 1;
 
 	}
 
 	public static void setStandardSpawn(Player player) {
+		try {
 
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Standard", new String[] { "Location" },
-				new SearchedValue[] { new SearchedValue("Location", new DBString("")) });
+			// ResultSet rs = runSQL("SELECT World FROM Standard");
 
-		if (queryResult.isEmpty()) {
-			dataBaseQuery.Insert("WW1Job", "Standard",
-					new SearchedValue[] { new SearchedValue("Location", new DBLocation(player.getLocation())) });
+			// if (!rs.next()) {
+			// runSQL("INSERT INTO Standard (world, x, y, z) VAlUES("
+			// + player.getServer().getWorld(player.getUniqueId()) + "," +
+			// player.getLocation().getY() + ","
+			// + player.getLocation().getZ() + "," + player.getLocation().getX()
+			// + ")");
+			// } else {
+			runSQL("UPDATE Standard SET (world, x, y, z) VAlUES(" + player.getServer().getWorld(player.getUniqueId())
+					+ "," + player.getLocation().getY() + "," + player.getLocation().getZ() + ","
+					+ player.getLocation().getX() + ")");
 
-		} else {
-			dataBaseQuery.Update("WW1Job", "Standard", new SearchedValue[] {},
-					new SearchedValue[] { new SearchedValue("Location", new DBLocation(player.getLocation())) });
+			// }
+
+		} catch (Exception e) {
+
 		}
 
 	}
 
 	public static String getPlayerMap(Player player) {
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Map" },
-				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+		try {
+			ResultSet rs = runSQLQuery("SELECT Map FROM Players WHERE UUID = \" " + player.getUniqueId().toString() + "\"");
 
-		return queryResult.rows.size() == 0 ? null : ((DBString) queryResult.rows.get(0).get(0)).getValue();
+			if (rs.getString("Map") == null) {
+				return null;
+
+			} else {
+				return rs.getString("Map");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 
 	}
 
 	public static void setPlayerMap(Player player, String map) {
 
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", "Players", new String[] { "Map" },
-				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+		try {
 
-		if (queryResult.isEmpty()) {
+			// ResultSet rs = runSQL("SELECT Map FROM Players WHERE UUID =\""+
+			// player.getUniqueId().toString() +"\"");
 
-			dataBaseQuery.Insert("WW1Job", "Players",
-					new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())),
-							new SearchedValue("Map", new DBString(map)) });
-		} else {
+			// if (!rs.next()) {
+			// runSQL("INSERT INTO Players (UUID, Map) VALUES ("+
+			// player.getUniqueId().toString() +"," + map +")");
 
-			dataBaseQuery.Update("WW1Job", "Players",
-					new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) },
-					new SearchedValue[] {new SearchedValue("Map", new DBString(map)) });
+			// }else{
+			runSQL("UPDATE Players SET (Map) WHERE UUID = \"" + player.getUniqueId().toString() + "\" VALUES (" + map
+					+ ")");
+			// }
+
+		} catch (Exception e) {
 
 		}
 
@@ -123,8 +197,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static void deletePlayerMap(Player player) {
 
-		dataBaseQuery.Delete("WW1Job", "Players",
-				new SearchedValue[] { new SearchedValue("UUID", new DBString(player.getUniqueId().toString())) });
+		runSQL("UPDATE Players SET (Map) WHERE UUID = \""+ player.getUniqueId().toString() +" VALUES(null)");
 
 	}
 
@@ -137,33 +210,33 @@ public class WW1Plugin extends JavaPlugin {
 		}
 	}
 
-	public static void setMapSpawn(String name, Player player, int team)  {
-		
-		if (3 > team && team > 0) {
-			
-			runSQL("UPDATE TeamSpawns SET world"+ team +" = \"" + player.getWorld().getName() + "\",x"+ team +"=" + player.getLocation().getX()
-					+ ",y"+ team +"=" + player.getLocation().getY() + ",z"+ team +"=" + player.getLocation().getZ());
-			
-			
-			
-			/* dataBaseQuery.Update("WW1Job", TeamSpawns,
-					new SearchedValue[] { new SearchedValue("name", new DBString(name)) },
-					new SearchedValue[] { new SearchedValue("location" + team, new DBLocation(player.getLocation())) });
+	public static void setMapSpawn(String name, Player player, int team) {
 
-			QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns, new String[] { "name" },
-					new SearchedValue[] { new SearchedValue("name", new DBString(name)) });
-					*/
-			
-			try{
-				if (!runSQL("SELECT world"+ team +"FROM TeamSpawns WHERE name = \"" + name + "\"").next()){
+		if (3 > team && team > 0) {
+
+			runSQL("UPDATE TeamSpawns SET world" + team + " = \"" + player.getWorld().getName() + "\",x" + team + "="
+					+ player.getLocation().getX() + ",y" + team + "=" + player.getLocation().getY() + ",z" + team + "="
+					+ player.getLocation().getZ());
+
+			/*
+			 * dataBaseQuery.Update("WW1Job", TeamSpawns, new SearchedValue[] {
+			 * new SearchedValue("name", new DBString(name)) }, new
+			 * SearchedValue[] { new SearchedValue("location" + team, new
+			 * DBLocation(player.getLocation())) });
+			 * 
+			 * QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns,
+			 * new String[] { "name" }, new SearchedValue[] { new
+			 * SearchedValue("name", new DBString(name)) });
+			 */
+
+			try {
+				if (!runSQLQuery("SELECT world" + team + " FROM TeamSpawns WHERE name = \"" + name + "\"").next()) {
 					player.sendMessage("This Map does not exist!");
 				}
-			}catch(Exception e){
+			} catch (Exception e) {
 				player.sendMessage("This Map does not exist!");
 			}
-			
 
-			
 		} else {
 			player.sendMessage("This team does not exist");
 		}
@@ -171,39 +244,40 @@ public class WW1Plugin extends JavaPlugin {
 	}
 
 	public static void createMap(String name, Player player) {
-		
-		
-		ResultSet rs = runSQL("SELECT name from");
 
-		if (queryResult.isEmpty()) {
-			
-			
-			runSQL("INSERT INTO TeamSpawns (name) VALUES(\""+ name + "\" )");
-			
-		} else {
-			player.sendMessage("This Map exists! Please Choose a different name!");
+		try {
+			ResultSet rs = runSQLQuery("SELECT name FROM TeamSpawns WHERE name =\"" + name + "\"");
 
+			if (!rs.next()) {
+
+				runSQL("INSERT INTO TeamSpawns (name, world1, world2, x1, x2, y1, y2, z1, z2) VALUES (\"" + name + "\" )");
+
+			} else {
+				player.sendMessage("This Map exists! Please Choose a different name!");
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 	}
 
-	public static Location getLocation(String name, Player player) {
-		Location location;
-
-		QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns, new String[] { "location1", "location2" },
-				new SearchedValue[] { new SearchedValue("name", new DBString(name)) });
-
-		if (queryResult.isEmpty()) {
-			player.sendMessage("This dungeon doesnt exist");
+	public static Location getMapLocation(String name, Player player) {
+		
+		int team = getPlayerTeam(player);
+		ResultSet rs = runSQLQuery("SELECT (x"+team+", y"+team+", z"+team+",, world"+team+") WHERE name = \""+ name +"\"");
+		
+		try {
+			return new Location(plugin.getServer().getWorld(rs.getString("world"+ team)), rs.getDouble("x" + team), rs.getDouble("y" + team), rs.getDouble("z" + team) );
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 			return null;
-		} else {
-			location = ((DBLocation) queryResult.rows.get(0).get((getPlayerTeam(player)) - 1))
-					.getValue();
 		}
-
-		return location;
+		
 	}
-	
+
 	public static Connection connect(String path) {
 		// SQLite connection string
 		String url = "jdbc:sqlite:" + path;
@@ -216,13 +290,25 @@ public class WW1Plugin extends JavaPlugin {
 		return conn;
 	}
 
-	public static ResultSet runSQL(String sql) {
+	public static ResultSet runSQLQuery(String sql) {
 		try {
 			return sqlc.createStatement().executeQuery(sql);
 		} catch (SQLException e) {
-			throw new RuntimeException("See SQLException");
+			
+			throw new RuntimeException(e);
+			
 		}
 	}
-
+	
+	public static void runSQL(String sql){
+		
+		
+		try {
+			sqlc.createStatement().execute(sql);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
+	}
 
 }

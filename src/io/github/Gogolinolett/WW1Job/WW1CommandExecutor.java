@@ -97,7 +97,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 						player.sendMessage("tping");
 						
-						Location location = WW1Plugin.getLocation(args[1], player);
+						Location location = WW1Plugin.getMapLocation(args[1], player);
 
 						setInv(player, args[1]);
 

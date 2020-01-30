@@ -217,12 +217,14 @@ public class WW1Plugin extends JavaPlugin {
 	}
 
 	public void setupDB() throws SQLException {
-		boolean isNew = Files.exists(Paths.get(getDataFolder().getAbsolutePath() + "\\database.db"));
+		boolean isNew = !Files.exists(Paths.get(getDataFolder().getAbsolutePath() + "\\database.db"));
 		sqlc = connect(getDataFolder().getAbsolutePath() + "\\database.db");
 
 		if (isNew) {
 			getLogger().info("Creating DB!");
-			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY); CREATE TABLE Players(Map STRING, Team REAL, UUID STRING PRIMARY KEY); CREATE TABLE Standard(world STRING, x REAL, y REAL, z REAL)");
+			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY)");
+			runSQL("CREATE TABLE Players (Map STRING, Team REAL, UUID STRING PRIMARY KEY)");
+			runSQL("CREATE TABLE Standard (world STRING, x REAL, y REAL, z REAL)");
 		}
 	}
 
@@ -267,7 +269,7 @@ public class WW1Plugin extends JavaPlugin {
 			if (!rs.next()) {
 
 				runSQL("INSERT INTO TeamSpawns (name, world1, world2, x1, x2, y1, y2, z1, z2) VALUES (\"" + name
-						+ "\" )");
+						+ "\" )");a
 
 			} else {
 				player.sendMessage("This Map exists! Please Choose a different name!");

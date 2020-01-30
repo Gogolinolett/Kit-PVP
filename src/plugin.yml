@@ -1,7 +1,6 @@
 main: io.github.Gogolinolett.WW1Job.WW1Plugin
 name: WW1Plugin
 version: 1.0.0
-depend: [SimpleDBMT]
 commands: 
      WW1:
       description: DUNGEONS THAT F YOU!

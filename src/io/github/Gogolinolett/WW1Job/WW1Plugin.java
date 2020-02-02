@@ -206,12 +206,16 @@ public class WW1Plugin extends JavaPlugin {
 			// player.getUniqueId().toString() +"," + map +")");
 
 			// }else{
-			runSQL("UPDATE Players SET (Map) WHERE UUID = \"" + player.getUniqueId().toString() + "\" VALUES (" + map
-					+ ")");
+			if (map == null) {
+				runSQL("UPDATE Players SET Map = null WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
+			} else {
+				runSQL("UPDATE Players SET Map = \"" + map + "\" WHERE UUID = \"" + player.getUniqueId().toString()
+						+ "\"");
+			}
 			// }
 
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 
 	}

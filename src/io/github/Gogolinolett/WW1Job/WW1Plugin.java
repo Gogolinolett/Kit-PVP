@@ -56,7 +56,7 @@ public class WW1Plugin extends JavaPlugin {
 
 				if (!rs.next()) {
 
-					runSQL("INSERT INTO Players UUID VALUES (" + event.getPlayer().getUniqueId().toString() + ")");
+					runSQL("INSERT INTO Players (UUID) VALUES (\"" + event.getPlayer().getUniqueId().toString() + "\")");
 
 				}
 			} catch (Exception e) {
@@ -68,8 +68,8 @@ public class WW1Plugin extends JavaPlugin {
 						"SELECT UUID FROM Players WHERE UUID = \"" + event.getPlayer().getUniqueId().toString() + "\"");
 
 				if (!rs.next()) {
-					runSQL("INSERT INTO Players (UUID, Team, Map) VAlUES(" + event.getPlayer().getUniqueId().toString()
-							+ ")");
+					runSQL("INSERT INTO Players (UUID) VAlUES(\"" + event.getPlayer().getUniqueId().toString()
+							+ "\")");
 				}
 
 			} catch (Exception e) {

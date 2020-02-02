@@ -2,6 +2,8 @@ package io.github.Gogolinolett.WW1Job;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,7 +98,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 						WW1Plugin.setPlayerMap(player, args[1]);
 
 						player.sendMessage("tping");
-						
+
 						Location location = WW1Plugin.getMapLocation(args[1], player);
 
 						setInv(player, args[1]);
@@ -121,8 +123,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 			}
 
 		}
-		
-		
+
 		if (hasPermission(sender,
 				new String[] { "WW1.leave", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*" }) == true) {
 
@@ -150,6 +151,25 @@ public class WW1CommandExecutor implements CommandExecutor {
 			}
 
 		}
+
+		// dan's code
+
+		if (args[0].equalsIgnoreCase("dump")) {
+			try {
+				if (args[1].equalsIgnoreCase("Players")) {
+					sender.sendMessage("world1 - x1 - y1 - z1 - world2 - x2 - y2 - z2 - name");
+					ResultSet rs = WW1Plugin.runSQLQuery("");
+					while (rs.next()) {
+						sender.sendMessage(rs.getString("world1") + " - " + rs.getInt("x1") + " - " + rs.getInt("y1")
+								+ " - " + rs.getInt("z1") + " - " + rs.getString("world2") + " - " + rs.getInt("x2")
+								+ " - " + rs.getInt("y2") + " - " + rs.getInt("z3"));
+					}
+				}
+			} catch (SQLException e) {
+				sender.sendMessage("SQL error!");
+			}
+		}
+
 		return false;
 
 	}

@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -47,6 +48,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	public class JoinListener implements Listener {
 
+		@EventHandler
 		public void onPJoin(PlayerJoinEvent event) {
 			// hier wird bei jedem spieler join die in datenbank gegebenenfals
 			// eingefügt
@@ -56,8 +58,11 @@ public class WW1Plugin extends JavaPlugin {
 
 				if (!rs.next()) {
 
-					runSQL("INSERT INTO Players (UUID) VALUES (\"" + event.getPlayer().getUniqueId().toString() + "\")");
+					runSQL("INSERT INTO Players (UUID) VALUES (\"" + event.getPlayer().getUniqueId().toString()
+							+ "\")");
 
+				} else {
+					System.out.println(rs.getString("Map"));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -68,8 +73,7 @@ public class WW1Plugin extends JavaPlugin {
 						"SELECT UUID FROM Players WHERE UUID = \"" + event.getPlayer().getUniqueId().toString() + "\"");
 
 				if (!rs.next()) {
-					runSQL("INSERT INTO Players (UUID) VAlUES(\"" + event.getPlayer().getUniqueId().toString()
-							+ "\")");
+					runSQL("INSERT INTO Players (UUID) VAlUES(\"" + event.getPlayer().getUniqueId().toString() + "\")");
 				}
 
 			} catch (Exception e) {

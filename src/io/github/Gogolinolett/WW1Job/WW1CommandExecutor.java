@@ -156,17 +156,31 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 		if (args[0].equalsIgnoreCase("dump")) {
 			try {
-				if (args[1].equalsIgnoreCase("Players")) {
+				if (args[1].equalsIgnoreCase("TeamPlayers")) {
 					sender.sendMessage("world1 - x1 - y1 - z1 - world2 - x2 - y2 - z2 - name");
-					ResultSet rs = WW1Plugin.runSQLQuery("");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
 					while (rs.next()) {
 						sender.sendMessage(rs.getString("world1") + " - " + rs.getInt("x1") + " - " + rs.getInt("y1")
 								+ " - " + rs.getInt("z1") + " - " + rs.getString("world2") + " - " + rs.getInt("x2")
-								+ " - " + rs.getInt("y2") + " - " + rs.getInt("z3"));
+								+ " - " + rs.getInt("y2") + " - " + rs.getInt("z2"));
+					}
+				} else if (args[1].equalsIgnoreCase("Players")) {
+					sender.sendMessage("Map - Team - UUID");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Players");
+					while (rs.next()) {
+						sender.sendMessage(rs.getString("Map") + " - " + rs.getInt("Team") + " - " + rs.getInt("UUID"));
+					}
+				} else if (args[1].equalsIgnoreCase("Standard")) {
+					sender.sendMessage("world - x - y - z");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
+					while (rs.next()) {
+						sender.sendMessage(rs.getString("world") + " - " + rs.getDouble("x") + " - " + rs.getDouble("y")
+								+ " - " + rs.getDouble("z"));
 					}
 				}
 			} catch (SQLException e) {
 				sender.sendMessage("SQL error!");
+				e.printStackTrace();
 			}
 		}
 

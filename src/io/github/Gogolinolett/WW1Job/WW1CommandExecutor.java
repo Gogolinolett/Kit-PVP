@@ -88,7 +88,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 					"WW1.tp." + args[1] }) == true) {
 
 				if (args[0].equalsIgnoreCase("tp")) {
-					if (WW1Plugin.getPlayerMap(player) != null) {
+					if (WW1Plugin.getPlayerMap(player) == null) {
 
 						player.sendMessage("you are in a Map!");
 

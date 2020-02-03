@@ -52,28 +52,29 @@ public class WW1Plugin extends JavaPlugin {
 		public void onPJoin(PlayerJoinEvent event) {
 			// hier wird bei jedem spieler join die in datenbank gegebenenfals
 			// eingefügt
-			try {
-				ResultSet rs = runSQLQuery("SELECT Team, Map FROM Players WHERE UUID =\""
-						+ event.getPlayer().getUniqueId().toString() + "\" ");
+			//try {
+				//ResultSet rs = runSQLQuery("SELECT Team, Map FROM Players WHERE UUID =\""
+					//	+ event.getPlayer().getUniqueId().toString() + "\" ");
 
-				if (!rs.next()) {
+				//if (!rs.next()) {
 
-					runSQL("INSERT INTO Players (UUID) VALUES (\"" + event.getPlayer().getUniqueId().toString()
-							+ "\")");
+					//runSQL("INSERT INTO Players (UUID) VALUES (\"" + event.getPlayer().getUniqueId().toString()
+					//		+ "\")");
 
-				} else {
-					System.out.println(rs.getString("Map"));
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+				//} else {
+					//System.out.println(rs.getString("Map"));
+				//}
+			//} catch (Exception e) {
+				//e.printStackTrace();
+			//}
 
 			try {
 				ResultSet rs = runSQLQuery(
 						"SELECT UUID FROM Players WHERE UUID = \"" + event.getPlayer().getUniqueId().toString() + "\"");
 
 				if (!rs.next()) {
-					runSQL("INSERT INTO Players (UUID) VAlUES(\"" + event.getPlayer().getUniqueId().toString() + "\")");
+					runSQL("INSERT INTO Players (UUID, Map) VAlUES(\"" + event.getPlayer().getUniqueId().toString()
+							+ "\", \"-1\")");
 				}
 
 			} catch (Exception e) {
@@ -177,11 +178,11 @@ public class WW1Plugin extends JavaPlugin {
 	public static String getPlayerMap(Player player) {
 		try {
 			ResultSet rs = runSQLQuery(
-					"SELECT Map FROM Players WHERE UUID = \" " + player.getUniqueId().toString() + "\"");
+					"SELECT Map FROM Players WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
 			if (!rs.next()) {
 				return null;
 			}
-			if (rs.getString("Map") == null) {
+			if (rs.getString("Map").equals("-1")) {
 				return null;
 
 			} else {
@@ -222,7 +223,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	public static void deletePlayerMap(Player player) {
 
-		runSQL("UPDATE Players SET (Map) WHERE UUID = \"" + player.getUniqueId().toString() + " VALUES (null)");
+		runSQL("UPDATE Players SET (Map) WHERE UUID = \"" + player.getUniqueId().toString() + " VALUES (\"-1\")");
 
 	}
 

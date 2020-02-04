@@ -75,7 +75,7 @@ public class WW1Plugin extends JavaPlugin {
 						"SELECT UUID FROM Players WHERE UUID = \"" + event.getPlayer().getUniqueId().toString() + "\"");
 
 				if (!rs.next()) {
-					runSQL("INSERT INTO Players (UUID, Map) VAlUES(\"" + event.getPlayer().getUniqueId().toString()
+					runSQL("INSERT INTO Players (UUID, Map) VAlUES (\"" + event.getPlayer().getUniqueId().toString()
 							+ "\", \"-1\")");
 				}
 
@@ -84,12 +84,12 @@ public class WW1Plugin extends JavaPlugin {
 			}
 
 		}
-
+		@EventHandler
 		public void onPSpawn(PlayerRespawnEvent event) {
 
 			if (getPlayerMap(event.getPlayer()) != null) {
-				event.getPlayer().teleport(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
-
+				//event.getPlayer().teleport(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
+				event.setRespawnLocation(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
 			}
 
 		}
@@ -121,8 +121,6 @@ public class WW1Plugin extends JavaPlugin {
 		try {
 			ResultSet rs = runSQLQuery("SELECT world,x,y,z FROM Standard");
 			if (!rs.next()) {
-				
-				runSQL("INSERT INTO Standard");
 
 				throw new RuntimeException("Was befindet sich hier? NICHTS!!!");
 			}
@@ -158,20 +156,18 @@ public class WW1Plugin extends JavaPlugin {
 	public static void setStandardSpawn(Player player) {
 		try {
 
-			// ResultSet rs = runSQL("SELECT World FROM Standard");
+			ResultSet rs = runSQLQuery("SELECT World FROM Standard");
 
-			// if (!rs.next()) {
-			// runSQL("INSERT INTO Standard (world, x, y, z) VAlUES("
-			// + player.getServer().getWorld(player.getUniqueId()) + "," +
-			// player.getLocation().getY() + ","
-			// + player.getLocation().getZ() + "," + player.getLocation().getX()
-			// + ")");
-			// } else {
-			runSQL("UPDATE Standard SET (world, x, y, z) VAlUES(" + player.getServer().getWorld(player.getUniqueId())
-					+ "," + player.getLocation().getY() + "," + player.getLocation().getZ() + ","
-					+ player.getLocation().getX() + ")");
+			if (!rs.next()) {
+				runSQL("INSERT INTO Standard (world, x, y, z) VAlUES (\"" + player.getLocation().getWorld().getName() + "\","
+						+ player.getLocation().getX() + "," + player.getLocation().getY() + ","
+						+ player.getLocation().getZ() + ")");
+			} else {
+				runSQL("UPDATE Standard SET (world, x, y, z) VAlUES (\"" + player.getLocation().getWorld().getName() + "\","
+						+ player.getLocation().getX() + "," + player.getLocation().getY() + ","
+						+ player.getLocation().getZ() + ")");
 
-			// }
+			}
 
 		} catch (Exception e) {
 

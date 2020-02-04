@@ -169,11 +169,11 @@ public class WW1CommandExecutor implements CommandExecutor {
 					sender.sendMessage("Map - Team - UUID");
 					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Players");
 					while (rs.next()) {
-						sender.sendMessage(rs.getString("Map") + " - " + rs.getInt("Team") + " - " + rs.getInt("UUID"));
+						sender.sendMessage(rs.getString("Map") + " - " + rs.getInt("Team") + " - " + rs.getString("UUID"));
 					}
 				} else if (args[1].equalsIgnoreCase("Standard")) {
 					sender.sendMessage("world - x - y - z");
-					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Standard");
 					while (rs.next()) {
 						sender.sendMessage(rs.getString("world") + " - " + rs.getDouble("x") + " - " + rs.getDouble("y")
 								+ " - " + rs.getDouble("z"));

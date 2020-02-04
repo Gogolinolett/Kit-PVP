@@ -52,21 +52,23 @@ public class WW1Plugin extends JavaPlugin {
 		public void onPJoin(PlayerJoinEvent event) {
 			// hier wird bei jedem spieler join die in datenbank gegebenenfals
 			// eingefügt
-			//try {
-				//ResultSet rs = runSQLQuery("SELECT Team, Map FROM Players WHERE UUID =\""
-					//	+ event.getPlayer().getUniqueId().toString() + "\" ");
+			// try {
+			// ResultSet rs = runSQLQuery("SELECT Team, Map FROM Players WHERE
+			// UUID =\""
+			// + event.getPlayer().getUniqueId().toString() + "\" ");
 
-				//if (!rs.next()) {
+			// if (!rs.next()) {
 
-					//runSQL("INSERT INTO Players (UUID) VALUES (\"" + event.getPlayer().getUniqueId().toString()
-					//		+ "\")");
+			// runSQL("INSERT INTO Players (UUID) VALUES (\"" +
+			// event.getPlayer().getUniqueId().toString()
+			// + "\")");
 
-				//} else {
-					//System.out.println(rs.getString("Map"));
-				//}
-			//} catch (Exception e) {
-				//e.printStackTrace();
-			//}
+			// } else {
+			// System.out.println(rs.getString("Map"));
+			// }
+			// } catch (Exception e) {
+			// e.printStackTrace();
+			// }
 
 			try {
 				ResultSet rs = runSQLQuery(
@@ -119,8 +121,10 @@ public class WW1Plugin extends JavaPlugin {
 		try {
 			ResultSet rs = runSQLQuery("SELECT world,x,y,z FROM Standard");
 			if (!rs.next()) {
-				throw new RuntimeException("Was befindet sich hier? NICHTS!!!");
+				
+				runSQL("INSERT INTO Standard");
 
+				throw new RuntimeException("Was befindet sich hier? NICHTS!!!");
 			}
 
 			return new Location(plugin.getServer().getWorld(rs.getString("world")), rs.getInt("x"), rs.getInt("y"),
@@ -182,7 +186,9 @@ public class WW1Plugin extends JavaPlugin {
 			if (!rs.next()) {
 				return null;
 			}
-			if (rs.getString("Map").equals("-1")) {
+			if (rs.getString("Map") == null) {
+				return null;
+			} else if (rs.getString("Map").equals("-1")) {
 				return null;
 
 			} else {

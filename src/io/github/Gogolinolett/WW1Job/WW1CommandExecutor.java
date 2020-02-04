@@ -88,7 +88,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 					"WW1.tp." + args[1] }) == true) {
 
 				if (args[0].equalsIgnoreCase("tp")) {
-					if (WW1Plugin.getPlayerMap(player) == null) {
+					if (WW1Plugin.getPlayerMap(player) != null) {
 
 						player.sendMessage("you are in a Map!");
 
@@ -134,7 +134,8 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 				} else {
 					WW1Plugin.setPlayerMap(player, null);
-					setInv(player, args[1]);
+					getPInv(player);
+					player.teleport(WW1Plugin.getStandardSpawn());
 					player.sendMessage("You left the map");
 				}
 
@@ -188,7 +189,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 	}
 
-	public void getPInv(Player p, String name) {
+	public void getPInv(Player p) {
 
 		File file = new File(WW1Plugin.plugin.getDataFolder(), p.getUniqueId() + ".yml");
 

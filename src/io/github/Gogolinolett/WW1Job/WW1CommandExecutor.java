@@ -23,10 +23,14 @@ public class WW1CommandExecutor implements CommandExecutor {
 	List<ItemStack> inv;
 	List<ItemStack> armor;
 	YamlConfiguration yml;
-
+	WW1Plugin ww1Plugin;
 	File file;
 
-	public static String PermissionDenied(String[] permissions) {
+	public WW1CommandExecutor(WW1Plugin ww1Plugin) {
+		this.ww1Plugin = ww1Plugin;
+	}
+
+	public String PermissionDenied(String[] permissions) {
 		String output = prefix + "§4§lYou do not have permission to run this command.\n" + prefix
 				+ "Permissions that grant access to this command:\n";
 		for (String permission : permissions) {
@@ -35,7 +39,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 		return output;
 	}
 
-	public static boolean hasPermission(CommandSender sender, String[] permissions) {
+	public boolean hasPermission(CommandSender sender, String[] permissions) {
 		if (sender instanceof Server) {
 			return true;
 		}
@@ -70,7 +74,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 					// /ww1 setspawn <name> <team>
 					player.sendMessage("setting mapspawn");
 
-					WW1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
+					ww1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
 
 				}
 
@@ -80,7 +84,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 				if (args[0].equalsIgnoreCase("create")) {
 					player.sendMessage("creating map");
-					WW1Plugin.createMap(args[1], player);
+					ww1Plugin.createMap(args[1], player);
 				}
 			}
 
@@ -88,18 +92,18 @@ public class WW1CommandExecutor implements CommandExecutor {
 					"WW1.tp." + args[1] }) == true) {
 
 				if (args[0].equalsIgnoreCase("tp")) {
-					if (WW1Plugin.getPlayerMap(player) != null) {
+					if (ww1Plugin.getPlayerMap(player) != null) {
 
 						player.sendMessage("you are in a Map!");
 
 					} else {
 						savePInv(player);
-						WW1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
-						WW1Plugin.setPlayerMap(player, args[1]);
+						ww1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
+						ww1Plugin.setPlayerMap(player, args[1]);
 
 						player.sendMessage("tping");
 
-						Location location = WW1Plugin.getMapLocation(args[1], player);
+						Location location = ww1Plugin.getMapLocation(args[1], player);
 
 						setInv(player, args[1]);
 
@@ -129,13 +133,13 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 			if (args[0].equalsIgnoreCase("leave")) {
 
-				if (WW1Plugin.getPlayerMap(player) == null) {
+				if (ww1Plugin.getPlayerMap(player) == null) {
 					player.sendMessage("You are not in a Map");
 
 				} else {
-					WW1Plugin.setPlayerMap(player, null);
+					ww1Plugin.setPlayerMap(player, null);
 					getPInv(player);
-					player.teleport(WW1Plugin.getStandardSpawn());
+					player.teleport(ww1Plugin.getStandardSpawn());
 					player.sendMessage("You left the map");
 				}
 
@@ -147,7 +151,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 			if (args[0].equalsIgnoreCase("setStandardSpawn")) {
 				player.sendMessage("setStandardSpawn");
-				WW1Plugin.setStandardSpawn(player);
+				ww1Plugin.setStandardSpawn(player);
 
 			}
 
@@ -159,7 +163,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 			try {
 				if (args[1].equalsIgnoreCase("TeamPlayers")) {
 					sender.sendMessage("world1 - x1 - y1 - z1 - world2 - x2 - y2 - z2 - name");
-					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
+					ResultSet rs = ww1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
 					while (rs.next()) {
 						sender.sendMessage(rs.getString("world1") + " - " + rs.getInt("x1") + " - " + rs.getInt("y1")
 								+ " - " + rs.getInt("z1") + " - " + rs.getString("world2") + " - " + rs.getInt("x2")
@@ -167,13 +171,14 @@ public class WW1CommandExecutor implements CommandExecutor {
 					}
 				} else if (args[1].equalsIgnoreCase("Players")) {
 					sender.sendMessage("Map - Team - UUID");
-					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Players");
+					ResultSet rs = ww1Plugin.runSQLQuery("SELECT * FROM Players");
 					while (rs.next()) {
-						sender.sendMessage(rs.getString("Map") + " - " + rs.getInt("Team") + " - " + rs.getString("UUID"));
+						sender.sendMessage(
+								rs.getString("Map") + " - " + rs.getInt("Team") + " - " + rs.getString("UUID"));
 					}
 				} else if (args[1].equalsIgnoreCase("Standard")) {
 					sender.sendMessage("world - x - y - z");
-					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Standard");
+					ResultSet rs = ww1Plugin.runSQLQuery("SELECT * FROM Standard");
 					while (rs.next()) {
 						sender.sendMessage(rs.getString("world") + " - " + rs.getDouble("x") + " - " + rs.getDouble("y")
 								+ " - " + rs.getDouble("z"));
@@ -188,7 +193,6 @@ public class WW1CommandExecutor implements CommandExecutor {
 		return false;
 
 	}
-	
 
 	public void getPInv(Player p) {
 
@@ -196,10 +200,10 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 		if (file.exists()) {
 
-			this.yml = YamlConfiguration.loadConfiguration(file);
+			yml = YamlConfiguration.loadConfiguration(file);
 
-			ItemStack[] i = toAnArray(this.yml.getList("Inventory"));
-			ItemStack[] ar = toAnArray(this.yml.getList("Armor"));
+			ItemStack[] i = toAnArray(yml.getList("Inventory"));
+			ItemStack[] ar = toAnArray(yml.getList("Armor"));
 
 			p.getInventory().setContents(i);
 

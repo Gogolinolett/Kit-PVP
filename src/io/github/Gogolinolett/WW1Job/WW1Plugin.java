@@ -47,14 +47,11 @@ public class WW1Plugin extends JavaPlugin {
 			getServer().getPluginManager().disablePlugin(this);
 		}
 
-		ww1CommandExecutor = new WW1CommandExecutor(this);
+		ww1CommandExecutor = new WW1CommandExecutor();
+
 		getCommand("WW1").setExecutor(ww1CommandExecutor);
 		craftTheftAuto = (Main) getServer().getPluginManager().getPlugin("CraftTheftAuto");
 		getServer().getPluginManager().registerEvents(new JoinListener(), this);
-		
-		
-		
-
 
 	}
 
@@ -112,7 +109,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public void setPlayerTeam(Player player, int team) {
+	public static void setPlayerTeam(Player player, int team) {
 		try {
 			if (team > 0 && team < 3) {
 
@@ -133,7 +130,7 @@ public class WW1Plugin extends JavaPlugin {
 		}
 	}
 
-	public Location getStandardSpawn() {
+	public static Location getStandardSpawn() {
 		try {
 			ResultSet rs = runSQLQuery("SELECT world,x,y,z FROM Standard");
 			if (!rs.next()) {
@@ -150,7 +147,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public int getPlayerTeam(Player player) {
+	public static int getPlayerTeam(Player player) {
 		try {
 			ResultSet rs = runSQLQuery(
 					"SELECT Team FROM Players WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
@@ -169,7 +166,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public void setStandardSpawn(Player player) {
+	public static void setStandardSpawn(Player player) {
 		try {
 
 			ResultSet rs = runSQLQuery("SELECT World FROM Standard");
@@ -191,7 +188,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public String getPlayerMap(Player player) {
+	public static String getPlayerMap(Player player) {
 		try {
 			ResultSet rs = runSQLQuery(
 					"SELECT Map FROM Players WHERE UUID = \"" + player.getUniqueId().toString() + "\"");
@@ -213,7 +210,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public void setPlayerMap(Player player, String map) {
+	public static void setPlayerMap(Player player, String map) {
 
 		try {
 
@@ -239,25 +236,25 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public void deletePlayerMap(Player player) {
+	public static void deletePlayerMap(Player player) {
 
 		runSQL("UPDATE Players SET (Map) WHERE UUID = \"" + player.getUniqueId().toString() + " VALUES (\"-1\")");
 
 	}
 
-	public void setupDB() throws SQLException {
-		boolean isNew = !Files.exists(Paths.get(getDataFolder().getAbsolutePath() + "\\database.db"));
-		sqlc = connect(getDataFolder().getAbsolutePath() + "\\database.db");
+	public static void setupDB() throws SQLException {
+		boolean isNew = !Files.exists(Paths.get(plugin.getDataFolder().getAbsolutePath() + "\\database.db"));
+		sqlc = connect(plugin.getDataFolder().getAbsolutePath() + "\\database.db");
 
 		if (isNew) {
-			getLogger().info("Creating DB!");
+			plugin.getLogger().info("Creating DB!");
 			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY)");
 			runSQL("CREATE TABLE Players (Map STRING, Team REAL, UUID STRING PRIMARY KEY)");
 			runSQL("CREATE TABLE Standard (world STRING, x REAL, y REAL, z REAL)");
 		}
 	}
 
-	public void setMapSpawn(String name, Player player, int team) {
+	public static void setMapSpawn(String name, Player player, int team) {
 
 		if (3 > team && team > 0) {
 
@@ -266,13 +263,14 @@ public class WW1Plugin extends JavaPlugin {
 					+ player.getLocation().getZ());
 
 			/*
-			 * dataBaseQuery.Update("WW1Job", TeamSpawns, new SearchedValue[] { new
-			 * SearchedValue("name", new DBString(name)) }, new SearchedValue[] { new
-			 * SearchedValue("location" + team, new DBLocation(player.getLocation())) });
+			 * dataBaseQuery.Update("WW1Job", TeamSpawns, new SearchedValue[] {
+			 * new SearchedValue("name", new DBString(name)) }, new
+			 * SearchedValue[] { new SearchedValue("location" + team, new
+			 * DBLocation(player.getLocation())) });
 			 * 
-			 * QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns, new
-			 * String[] { "name" }, new SearchedValue[] { new SearchedValue("name", new
-			 * DBString(name)) });
+			 * QueryResult queryResult = dataBaseQuery.Run("WW1Job", TeamSpawns,
+			 * new String[] { "name" }, new SearchedValue[] { new
+			 * SearchedValue("name", new DBString(name)) });
 			 */
 
 			try {
@@ -289,7 +287,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public void createMap(String name, Player player) {
+	public static void createMap(String name, Player player) {
 
 		try {
 			ResultSet rs = runSQLQuery("SELECT name FROM TeamSpawns WHERE name =\"" + name + "\"");
@@ -309,7 +307,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public Location getMapLocation(String name, Player player) {
+	public static Location getMapLocation(String name, Player player) {
 
 		int team = getPlayerTeam(player);
 		ResultSet rs = runSQLQuery("SELECT x" + team + ", y" + team + ", z" + team + ", world" + team
@@ -326,7 +324,7 @@ public class WW1Plugin extends JavaPlugin {
 
 	}
 
-	public Connection connect(String path) throws SQLException {
+	public static Connection connect(String path) throws SQLException {
 		// SQLite connection string
 		String url = "jdbc:sqlite:" + path;
 		Connection conn = null;
@@ -335,7 +333,7 @@ public class WW1Plugin extends JavaPlugin {
 		return conn;
 	}
 
-	public ResultSet runSQLQuery(String sql) {
+	public static ResultSet runSQLQuery(String sql) {
 		try {
 			System.out.println(sql);
 			return sqlc.createStatement().executeQuery(sql);
@@ -346,7 +344,7 @@ public class WW1Plugin extends JavaPlugin {
 		}
 	}
 
-	public void runSQL(String sql) {
+	public static void runSQL(String sql) {
 
 		try {
 			System.out.println(sql);

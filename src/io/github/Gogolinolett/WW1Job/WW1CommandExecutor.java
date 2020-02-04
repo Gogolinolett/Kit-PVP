@@ -20,15 +20,10 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 	public static String prefix = "[WW1Job]";
 
-	List<ItemStack> inv;
-	List<ItemStack> armor;
-	YamlConfiguration yml;
-	WW1Plugin ww1Plugin;
-	File file;
-
-	public WW1CommandExecutor(WW1Plugin ww1Plugin) {
-		this.ww1Plugin = ww1Plugin;
-	}
+	private static List<ItemStack> inv;
+	private static List<ItemStack> armor;
+	private static YamlConfiguration yml;
+	private static File file;
 
 	public String PermissionDenied(String[] permissions) {
 		String output = prefix + "§4§lYou do not have permission to run this command.\n" + prefix
@@ -74,7 +69,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 					// /ww1 setspawn <name> <team>
 					player.sendMessage("setting mapspawn");
 
-					ww1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
+					WW1Plugin.setMapSpawn(args[1], player, Integer.parseInt(args[2]));
 
 				}
 
@@ -84,7 +79,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 				if (args[0].equalsIgnoreCase("create")) {
 					player.sendMessage("creating map");
-					ww1Plugin.createMap(args[1], player);
+					WW1Plugin.createMap(args[1], player);
 				}
 			}
 
@@ -92,18 +87,18 @@ public class WW1CommandExecutor implements CommandExecutor {
 					"WW1.tp." + args[1] }) == true) {
 
 				if (args[0].equalsIgnoreCase("tp")) {
-					if (ww1Plugin.getPlayerMap(player) != null) {
+					if (WW1Plugin.getPlayerMap(player) != null) {
 
 						player.sendMessage("you are in a Map!");
 
 					} else {
 						savePInv(player);
-						ww1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
-						ww1Plugin.setPlayerMap(player, args[1]);
+						WW1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
+						WW1Plugin.setPlayerMap(player, args[1]);
 
 						player.sendMessage("tping");
 
-						Location location = ww1Plugin.getMapLocation(args[1], player);
+						Location location = WW1Plugin.getMapLocation(args[1], player);
 
 						setInv(player, args[1]);
 
@@ -133,13 +128,13 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 			if (args[0].equalsIgnoreCase("leave")) {
 
-				if (ww1Plugin.getPlayerMap(player) == null) {
+				if (WW1Plugin.getPlayerMap(player) == null) {
 					player.sendMessage("You are not in a Map");
 
 				} else {
-					ww1Plugin.setPlayerMap(player, null);
+					WW1Plugin.setPlayerMap(player, null);
 					getPInv(player);
-					player.teleport(ww1Plugin.getStandardSpawn());
+					player.teleport(WW1Plugin.getStandardSpawn());
 					player.sendMessage("You left the map");
 				}
 
@@ -151,7 +146,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 			if (args[0].equalsIgnoreCase("setStandardSpawn")) {
 				player.sendMessage("setStandardSpawn");
-				ww1Plugin.setStandardSpawn(player);
+				WW1Plugin.setStandardSpawn(player);
 
 			}
 
@@ -163,7 +158,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 			try {
 				if (args[1].equalsIgnoreCase("TeamPlayers")) {
 					sender.sendMessage("world1 - x1 - y1 - z1 - world2 - x2 - y2 - z2 - name");
-					ResultSet rs = ww1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM TeamSpawns");
 					while (rs.next()) {
 						sender.sendMessage(rs.getString("world1") + " - " + rs.getInt("x1") + " - " + rs.getInt("y1")
 								+ " - " + rs.getInt("z1") + " - " + rs.getString("world2") + " - " + rs.getInt("x2")
@@ -171,14 +166,14 @@ public class WW1CommandExecutor implements CommandExecutor {
 					}
 				} else if (args[1].equalsIgnoreCase("Players")) {
 					sender.sendMessage("Map - Team - UUID");
-					ResultSet rs = ww1Plugin.runSQLQuery("SELECT * FROM Players");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Players");
 					while (rs.next()) {
 						sender.sendMessage(
 								rs.getString("Map") + " - " + rs.getInt("Team") + " - " + rs.getString("UUID"));
 					}
 				} else if (args[1].equalsIgnoreCase("Standard")) {
 					sender.sendMessage("world - x - y - z");
-					ResultSet rs = ww1Plugin.runSQLQuery("SELECT * FROM Standard");
+					ResultSet rs = WW1Plugin.runSQLQuery("SELECT * FROM Standard");
 					while (rs.next()) {
 						sender.sendMessage(rs.getString("world") + " - " + rs.getDouble("x") + " - " + rs.getDouble("y")
 								+ " - " + rs.getDouble("z"));
@@ -194,7 +189,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 	}
 
-	public void getPInv(Player p) {
+	public static void getPInv(Player p) {
 
 		File file = new File(WW1Plugin.plugin.getDataFolder(), p.getUniqueId() + ".yml");
 
@@ -210,23 +205,23 @@ public class WW1CommandExecutor implements CommandExecutor {
 		}
 	}
 
-	public void setInv(Player p, String name) {
+	public static void setInv(Player p, String name) {
 
 		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
 
 		if (file.exists()) {
 
-			this.yml = YamlConfiguration.loadConfiguration(file);
+			yml = YamlConfiguration.loadConfiguration(file);
 
-			ItemStack[] i = toAnArray(this.yml.getList("Inventory"));
-			ItemStack[] ar = toAnArray(this.yml.getList("Armor"));
+			ItemStack[] i = toAnArray(yml.getList("Inventory"));
+			ItemStack[] ar = toAnArray(yml.getList("Armor"));
 
 			p.getInventory().setContents(i);
 
 		}
 	}
 
-	public void savePInv(Player p) {
+	public static void savePInv(Player p) {
 		checkFolder();
 
 		File file = new File(WW1Plugin.plugin.getDataFolder(), p.getUniqueId() + ".yml");
@@ -241,20 +236,20 @@ public class WW1CommandExecutor implements CommandExecutor {
 			e.printStackTrace();
 		}
 
-		this.yml = YamlConfiguration.loadConfiguration(file);
+		yml = YamlConfiguration.loadConfiguration(file);
 
-		this.yml.set("Inventory", toList(p.getInventory().getContents()));
-		this.yml.set("Armor", toList(p.getInventory().getArmorContents()));
+		yml.set("Inventory", toList(p.getInventory().getContents()));
+		yml.set("Armor", toList(p.getInventory().getArmorContents()));
 
 		try {
-			this.yml.save(file);
+			yml.save(file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	public void saveInv(Player p, String name) {
+	public static void saveInv(Player p, String name) {
 		checkFolder();
 
 		File file = new File(WW1Plugin.plugin.getDataFolder(), name + ".yml");
@@ -269,20 +264,20 @@ public class WW1CommandExecutor implements CommandExecutor {
 			e.printStackTrace();
 		}
 
-		this.yml = YamlConfiguration.loadConfiguration(file);
+		yml = YamlConfiguration.loadConfiguration(file);
 
-		this.yml.set("Inventory", toList(p.getInventory().getContents()));
-		this.yml.set("Armor", toList(p.getInventory().getArmorContents()));
+		yml.set("Inventory", toList(p.getInventory().getContents()));
+		yml.set("Armor", toList(p.getInventory().getArmorContents()));
 
 		try {
-			this.yml.save(file);
+			yml.save(file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	public void checkFolder() {
+	public static void checkFolder() {
 		File f = new File((String) WW1Plugin.plugin.getDataFolder().getName());
 		if (f.exists()) {
 			return;
@@ -290,7 +285,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 		f.mkdir();
 	}
 
-	public List<ItemStack> toList(ItemStack[] in) {
+	public static List<ItemStack> toList(ItemStack[] in) {
 		ArrayList<ItemStack> l = new ArrayList<>();
 
 		for (int i = 0; i < in.length; i++) {
@@ -299,7 +294,7 @@ public class WW1CommandExecutor implements CommandExecutor {
 		return l;
 	}
 
-	public ItemStack[] toAnArray(List<?> list) {
+	public static ItemStack[] toAnArray(List<?> list) {
 		ItemStack[] is = new ItemStack[list.size()];
 
 		for (int i = 0; i < list.size(); i++) {

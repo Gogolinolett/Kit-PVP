@@ -90,6 +90,9 @@ public class WW1Plugin extends JavaPlugin {
 			if (getPlayerMap(event.getPlayer()) != null) {
 				//event.getPlayer().teleport(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
 				event.setRespawnLocation(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
+				
+				
+				WW1CommandExecutor.getPInv(event.getPlayer());
 			}
 
 		}

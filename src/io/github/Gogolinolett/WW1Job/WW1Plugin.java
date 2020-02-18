@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -14,6 +15,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -102,12 +104,58 @@ public class WW1Plugin extends JavaPlugin {
 				// event.getPlayer()));
 				event.setRespawnLocation(getMapLocation(getPlayerMap(event.getPlayer()), event.getPlayer()));
 
-				ww1CommandExecutor.getPInv(event.getPlayer());
+				WW1CommandExecutor.setInv(event.getPlayer(), getPlayerMap(event.getPlayer()));
 			}
 
 		}
+		
+		@EventHandler
+		public void onPDeath(PlayerDeathEvent event){
+			
+			if (getPlayerMap(event.getEntity().getPlayer()) != null) {
+				Player p = event.getEntity();
+				
+				event.getDrops().clear();
+			}
+		}
 
 	}
+	
+	public static int rsSize(ResultSet rs) throws SQLException{
+		int i = 0;
+		while(rs.next()){
+			i ++;
+		}
+		return i;
+		
+	}
+	
+	public static void setMapUsed(String name, boolean usageState){
+		
+		runSQL("UPDATE TeamSpawns SET state =\""+ usageState +"\" WHERE name = \""+ name +"\"");
+		
+	}
+	
+	public static String[] getEmptyMaps(){
+		
+		ResultSet rs = runSQLQuery("SELECT name WHERE state =\""+ false +"\"");
+		try {
+			String[] nameList = new String[rsSize(rs)];
+			int i = 0;
+			
+			while(rs.next()){
+				nameList[i] = rs.getString("name"); 
+				i ++;
+			}
+			return nameList;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+
 
 	public static void setPlayerTeam(Player player, int team) {
 		try {
@@ -248,7 +296,7 @@ public class WW1Plugin extends JavaPlugin {
 
 		if (isNew) {
 			plugin.getLogger().info("Creating DB!");
-			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY)");
+			runSQL("CREATE TABLE TeamSpawns (world1 STRING , x1 REAL, y1 REAL, z1 REAL, world2 STRING, x2 REAL, y2 REAL , z2 REAL,name STRING PRIMARY KEY, state REAL)");
 			runSQL("CREATE TABLE Players (Map STRING, Team REAL, UUID STRING PRIMARY KEY)");
 			runSQL("CREATE TABLE Standard (world STRING, x REAL, y REAL, z REAL)");
 		}
@@ -294,7 +342,7 @@ public class WW1Plugin extends JavaPlugin {
 
 			if (!rs.next()) {
 
-				runSQL("INSERT INTO TeamSpawns (name) VALUES (\"" + name + "\" )");
+				runSQL("INSERT INTO TeamSpawns (name, state) VALUES (\"" + name + "\", 0)");
 
 			} else {
 				player.sendMessage("This Map exists! Please Choose a different name!");

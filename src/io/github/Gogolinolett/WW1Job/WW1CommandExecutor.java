@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -19,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 public class WW1CommandExecutor implements CommandExecutor {
 
 	public static String prefix = "[WW1Job]";
+	public static TreeMap<Player, Player> challenges = new TreeMap<Player, Player>();
 
 	private static List<ItemStack> inv;
 	private static List<ItemStack> armor;
@@ -87,31 +90,32 @@ public class WW1CommandExecutor implements CommandExecutor {
 					"WW1.tp." + args[1] }) == true) {
 
 				if (args[0].equalsIgnoreCase("tp")) {
-					if (WW1Plugin.getPlayerMap(player) != null) {
+					
+					tpToMap(player, args);
+					//if (WW1Plugin.getPlayerMap(player) != null) {
 
-						player.sendMessage("you are in a Map!");
+					//	player.sendMessage("you are in a Map!");
 
-					} else {
-						savePInv(player);
-						WW1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
-						WW1Plugin.setPlayerMap(player, args[1]);
+					//} else {
+					//	savePInv(player);
+					//	WW1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
+					//	WW1Plugin.setPlayerMap(player, args[1]);
+						//
+					//	player.sendMessage("tping");
 
-						player.sendMessage("tping");
+					//	Location location = WW1Plugin.getMapLocation(args[1], player);
 
-						Location location = WW1Plugin.getMapLocation(args[1], player);
+					//	setInv(player, args[1]);
 
-						setInv(player, args[1]);
+					//	player.teleport(location);
 
-						player.teleport(location);
-
-					}
+					//}
 
 				}
 
 			}
 
-			if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "WW1.tp.*",
-					"WW1.tp." + args[1] }) == true) {
+			if (hasPermission(sender, new String[] { "WW1.tp", "WW1.*", "WW1.Admin", "WW1.Player", "setkit" }) == true) {
 				if (args[0].equalsIgnoreCase("setkit")) {
 
 					saveInv(player, args[1]);
@@ -128,16 +132,16 @@ public class WW1CommandExecutor implements CommandExecutor {
 
 			if (args[0].equalsIgnoreCase("leave")) {
 
-				if (WW1Plugin.getPlayerMap(player) == null) {
-					player.sendMessage("You are not in a Map");
+				//if (WW1Plugin.getPlayerMap(player) == null) {
+				//	player.sendMessage("You are not in a Map");
 
-				} else {
-					WW1Plugin.setPlayerMap(player, null);
-					getPInv(player);
-					player.teleport(WW1Plugin.getStandardSpawn());
-					player.sendMessage("You left the map");
-				}
-
+				//} else {
+				//	WW1Plugin.setPlayerMap(player, null);
+				//	getPInv(player);
+				//	player.teleport(WW1Plugin.getStandardSpawn());
+				//	player.sendMessage("You left the map");
+				//}
+				leaveMap(player);
 			}
 
 		}
@@ -184,9 +188,55 @@ public class WW1CommandExecutor implements CommandExecutor {
 				e.printStackTrace();
 			}
 		}
-
+		
+		if (hasPermission(sender, new String[] { "WW1.Join", "WW1.*", "WW1.Admin", "WW1.Player", "Join" }) == true) {
+			if (args[0].equalsIgnoreCase("1v1")){
+				Player challenged = player.getServer().getPlayer(args[1]);
+				if(challenges.get(challenged).equals(player)){
+					
+				}else if(challenges.containsKey(player)){
+					challenges.replace(player, challenged);
+				}
+				
+				
+			}
+		}
+		
 		return false;
 
+	}
+	
+	public static void leaveMap(Player player){
+		if (WW1Plugin.getPlayerMap(player) == null) {
+			player.sendMessage("You are not in a Map");
+
+		} else {
+			WW1Plugin.setPlayerMap(player, null);
+			getPInv(player);
+			player.teleport(WW1Plugin.getStandardSpawn());
+			player.sendMessage("You left the map");
+		}
+	}
+	
+	public static void tpToMap(Player player, String[] args){
+		if (WW1Plugin.getPlayerMap(player) != null) {
+
+			player.sendMessage("you are in a Map!");
+
+		} else {
+			savePInv(player);
+			WW1Plugin.setPlayerTeam(player, Integer.parseInt(args[2]));
+			WW1Plugin.setPlayerMap(player, args[1]);
+
+			player.sendMessage("tping");
+
+			Location location = WW1Plugin.getMapLocation(args[1], player);
+
+			setInv(player, args[1]);
+
+			player.teleport(location);
+
+		}
 	}
 
 	public static void getPInv(Player p) {
